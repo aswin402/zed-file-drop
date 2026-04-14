@@ -1,0 +1,14 @@
+/home/aswin/programming/vscode/myProjects/zed-file-drop/target/debug/deps/serde-f5283fa001aa0c37.d: /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/aswin/programming/vscode/myProjects/zed-file-drop/target/debug/build/serde-5583995ece005981/out/private.rs
+
+/home/aswin/programming/vscode/myProjects/zed-file-drop/target/debug/deps/libserde-f5283fa001aa0c37.rlib: /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/aswin/programming/vscode/myProjects/zed-file-drop/target/debug/build/serde-5583995ece005981/out/private.rs
+
+/home/aswin/programming/vscode/myProjects/zed-file-drop/target/debug/deps/libserde-f5283fa001aa0c37.rmeta: /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/aswin/programming/vscode/myProjects/zed-file-drop/target/debug/build/serde-5583995ece005981/out/private.rs
+
+/home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/home/aswin/programming/vscode/myProjects/zed-file-drop/target/debug/build/serde-5583995ece005981/out/private.rs:
+
+# env-dep:OUT_DIR=/home/aswin/programming/vscode/myProjects/zed-file-drop/target/debug/build/serde-5583995ece005981/out

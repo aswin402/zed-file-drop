@@ -81,34 +81,42 @@ def main():
     wayland = bool(os.environ.get("WAYLAND_DISPLAY"))
 
     # ── Attempt clipboard reading in order of priority ────────────────────────
-    result = None
+    results = None
 
     if os_name == "Linux":
         if wayland:
-            result = try_wayland(assets_dir, timestamp)
-        if not result:
-            result = try_x11(assets_dir, timestamp)
+            results = try_wayland(assets_dir, timestamp)
+        if not results:
+            results = try_x11(assets_dir, timestamp)
 
     # macOS / Windows fallback (and Linux last-resort)
-    if not result:
-        result = try_pillow(assets_dir, timestamp)
+    if not results:
+        results = try_pillow(assets_dir, timestamp)
 
-    if not result:
-        print(f"{style(ICON_ERROR, CLR_RED)}  {style('Error:', CLR_BOLD)} No image or image file found on clipboard.", file=sys.stderr)
+    if not results:
+        print(f"{style(ICON_ERROR, CLR_RED)}  {style('Error:', CLR_BOLD)} No file or image found on clipboard.", file=sys.stderr)
         sys.exit(1)
 
-    _dest_path, filename = result
-    md_link = f"![](assets/{filename})"
+    all_md_links = []
+    print_header("zed-file-drop")
+
+    for dest_path, filename, is_image in results:
+        if is_image:
+            md_link = f"![](assets/{filename})"
+        else:
+            md_link = f"[{filename}](assets/{filename})"
+            
+        all_md_links.append(md_link)
+        print(f"{style(ICON_CHECK, CLR_GREEN)}  {style('Saved:', CLR_BOLD):<10} assets/{filename}")
+        print(f"{style(ICON_CLIPBOARD, CLR_CYAN)}  {style('Linked:', CLR_BOLD):<10} {md_link}")
+
+    print_footer()
 
     # ── Write the markdown link back to clipboard so user can Ctrl+V ─────────
-    write_to_clipboard(md_link, wayland)
+    final_text = "\n".join(all_md_links)
+    write_to_clipboard(final_text, wayland)
 
-    # Also print it so Zed's task output panel shows it
-    print_header("zed-file-drop")
-    print(f"{style(ICON_CHECK, CLR_GREEN)}  {style('Saved:', CLR_BOLD):<10} assets/{filename}")
-    print(f"{style(ICON_CLIPBOARD, CLR_CYAN)}  {style('Linked:', CLR_BOLD):<10} {md_link}")
-    print_footer()
-    print(f"{style(ICON_INFO, CLR_YELLOW)}  Press {style('Ctrl+V', CLR_BOLD)} to paste link into your editor.\n")
+    print(f"{style(ICON_INFO, CLR_YELLOW)}  Press {style('Ctrl+V', CLR_BOLD)} to paste into your editor.\n")
 
     sys.exit(0)
 
@@ -133,16 +141,16 @@ def try_wayland(assets_dir: Path, timestamp: str):
                     filename = f"image-{timestamp}{ext}"
                     dest = assets_dir / filename
                     dest.write_bytes(img_r.stdout)
-                    return dest, filename
+                    return [(dest, filename, True)]
 
         # Priority 2: file:// URIs (Nautilus, Thunar, etc.)
         for uri_mime in ("text/uri-list", "x-special/gnome-copied-files"):
             if uri_mime in available:
                 uri_r = subprocess.run(["wl-paste", "--type", uri_mime], capture_output=True, text=True)
                 if uri_r.returncode == 0 and uri_r.stdout.strip():
-                    result = _handle_uri_list(uri_r.stdout, assets_dir, timestamp)
-                    if result:
-                        return result
+                    results = _handle_uri_list(uri_r.stdout, assets_dir, timestamp)
+                    if results:
+                        return results
 
     except FileNotFoundError:
         pass  # wl-paste not installed
@@ -164,7 +172,7 @@ def try_x11(assets_dir: Path, timestamp: str):
             filename = f"image-{timestamp}.png"
             dest = assets_dir / filename
             dest.write_bytes(r.stdout)
-            return dest, filename
+            return [(dest, filename, True)]
 
         # Priority 2: file:// URIs
         r = subprocess.run(
@@ -173,9 +181,9 @@ def try_x11(assets_dir: Path, timestamp: str):
             text=True,
         )
         if r.returncode == 0 and r.stdout.strip():
-            result = _handle_uri_list(r.stdout, assets_dir, timestamp)
-            if result:
-                return result
+            results = _handle_uri_list(r.stdout, assets_dir, timestamp)
+            if results:
+                return results
 
     except FileNotFoundError:
         pass  # xclip not installed
@@ -196,20 +204,18 @@ def try_pillow(assets_dir: Path, timestamp: str):
 
         # On macOS Pillow can return a list of file paths
         if isinstance(img, list):
+            results = []
             for path_str in img:
                 p = Path(str(path_str))
-                if p.exists() and p.suffix.lower() in IMAGE_EXTENSIONS:
-                    filename = f"image-{timestamp}{p.suffix.lower()}"
-                    dest = assets_dir / filename
-                    shutil.copy2(p, dest)
-                    return dest, filename
-            return None
+                if p.exists():
+                    results.append(_safe_copy(p, assets_dir, timestamp))
+            return results if results else None
 
         # It's a PIL Image object (screenshot / copied image)
         filename = f"image-{timestamp}.png"
         dest = assets_dir / filename
         img.save(dest, format="PNG")
-        return dest, filename
+        return [(dest, filename, True)]
 
     except ImportError:
         return None
@@ -258,12 +264,33 @@ def write_to_clipboard(text: str, wayland: bool = False):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+def _safe_copy(source_path: Path, assets_dir: Path, timestamp: str) -> tuple[Path, str, bool]:
+    """Copy a file or directory safely to assets_dir, avoiding collisions."""
+    filename = source_path.name
+    dest = assets_dir / filename
+    
+    if dest.exists():
+        filename = f"{source_path.stem}-{timestamp}{source_path.suffix}"
+        dest = assets_dir / filename
+        
+    is_img = source_path.suffix.lower() in IMAGE_EXTENSIONS
+    
+    if source_path.is_dir():
+        shutil.copytree(source_path, dest)
+        is_img = False
+    else:
+        shutil.copy2(source_path, dest)
+        
+    return (dest, filename, is_img)
+
+
 def _handle_uri_list(uri_text: str, assets_dir: Path, timestamp: str):
     """
     Parse a text/uri-list payload (newline-separated file:// URIs)
-    and copy the first image file found into assets_dir.
+    and copy all items found into assets_dir.
     """
     lines = [l.strip() for l in uri_text.splitlines() if l.strip() and not l.startswith("#")]
+    results = []
 
     for line in lines:
         # Nautilus prefixes with "copy\n" for x-special/gnome-copied-files
@@ -276,16 +303,10 @@ def _handle_uri_list(uri_text: str, assets_dir: Path, timestamp: str):
         if not file_path.exists():
             continue
 
-        suffix = file_path.suffix.lower()
-        if suffix not in IMAGE_EXTENSIONS:
-            continue
+        res = _safe_copy(file_path, assets_dir, timestamp)
+        results.append(res)
 
-        filename = f"image-{timestamp}{suffix}"
-        dest = assets_dir / filename
-        shutil.copy2(file_path, dest)
-        return dest, filename
-
-    return None
+    return results if results else None
 
 
 def _mime_to_ext(mime: str) -> str:

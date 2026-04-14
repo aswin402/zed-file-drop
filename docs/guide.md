@@ -89,9 +89,13 @@ This is the fastest, most reliable method:
    - OR press your custom hotkey (see below)
 
 3. The terminal briefly shows:
-   ```
-   ✅ Image saved:  assets/image-20240414_103000.png
-   📋 In clipboard: ![](assets/image-20240414_103000.png)
+   ```text
+   󰋩 zed-file-drop
+   ─────────────────────────────────────────────
+   󰄬  Saved:     assets/image-20240414_103000.png
+   󰅍  Linked:    ![](assets/image-20240414_103000.png)
+   ─────────────────────────────────────────────
+   󰋽  Press Ctrl+V to paste into your editor.
    ```
 
 ![Terminal Output Feedback](screenshots/searchtask.png)

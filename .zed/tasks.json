@@ -1,6 +1,6 @@
 [
   {
-    "label": "󰋩 Paste Image",
+    "label": "󰋩 Paste File/Image",
     "command": "python3",
     "args": [
       "${ZED_WORKTREE_ROOT}/scripts/paste_to_editor.py",

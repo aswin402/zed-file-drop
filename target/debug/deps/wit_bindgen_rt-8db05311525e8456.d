@@ -1,0 +1,9 @@
+/home/aswin/programming/vscode/myProjects/zed-file-drop/target/debug/deps/wit_bindgen_rt-8db05311525e8456.d: /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/lib.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/cabi_realloc.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/async_support.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/async_support/future_support.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/async_support/stream_support.rs
+
+/home/aswin/programming/vscode/myProjects/zed-file-drop/target/debug/deps/libwit_bindgen_rt-8db05311525e8456.rmeta: /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/lib.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/cabi_realloc.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/async_support.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/async_support/future_support.rs /home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/async_support/stream_support.rs
+
+/home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/lib.rs:
+/home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/cabi_realloc.rs:
+/home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/async_support.rs:
+/home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/async_support/future_support.rs:
+/home/aswin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wit-bindgen-rt-0.41.0/src/async_support/stream_support.rs:

@@ -36,3 +36,7 @@ This document tracks the significant changes and bug fixes made during the devel
     1.  Building the WASM blob for `wasm32-wasip1`.
     2.  Using `rsync` to sync only relevant scripts and metadata.
     3.  Restarting Zed (optional) to trigger an immediate extension reload.
+
+## Modification 8: TUI Modernization (v0.2.0)
+- **Problem**: The original terminal output relied heavily on standard emojis which sometimes rendered inconsistently across different terminal emulators and lacked a professional tool feel.
+- **Solution**: Replaced standard emojis with consistent Nerd Font icons (e.g., `󰋩`, ``, ``, ``) and clean ASCII characters for bounding boxes and visual separation. This modernized the look and improved visual hierarchy in the command output.

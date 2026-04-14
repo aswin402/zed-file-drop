@@ -2,9 +2,10 @@
 
 ![Zed File Drop Logo](assets/logo.png)
 
-A **cross-platform** Zed extension and task that lets you paste images directly from your clipboard or file manager into the editor as Markdown image links — just like VS Code.
+A **cross-platform** Zed extension and task that lets you paste files, folders, and images directly from your clipboard or file manager into the editor, generating the relevant Markdown links — just like VS Code.
 
 [![Zed](https://img.shields.io/badge/Zed-Extension-5C7CFF?style=flat-square)](https://zed.dev)
+[![Version](https://img.shields.io/badge/Version-0.2.0-blue?style=flat-square)](#)
 [![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
@@ -13,9 +14,9 @@ A **cross-platform** Zed extension and task that lets you paste images directly 
 ## How it Works
 
 1. **Copy** any image — a screenshot, or an image copied from Nautilus/Thunar/Files.
-2. **Press** `Ctrl+Shift+P` → run `󰋩 Paste Image`, or use a custom hotkey.
-3. The script saves the image to `assets/image-xxx.png` in your workspace.
-4. `![](assets/image-xxx.png)` is placed in your clipboard automatically.
+2. **Press** `Ctrl+Shift+P` → run `󰋩 Paste File/Image`, or use a custom hotkey.
+3. The script saves the item to `assets/` in your workspace.
+4. The resulting Markdown link `![](assets/...)` or `[file](assets/...)` is placed in your clipboard automatically.
 5. **Press** `Ctrl+V` in your editor to insert the link.
 
 > This works for **both screenshot images AND files copied from your file manager**.
@@ -63,7 +64,7 @@ To make image pasting available in **all** your projects without copying files:
 ```json
 [
   {
-    "label": "󰋩 Paste Image",
+    "label": "󰋩 Paste File/Image",
     "command": "python3",
     "args": [
       "/home/aswin/programming/vscode/myProjects/zed-file-drop/scripts/paste_to_editor.py",
@@ -84,7 +85,7 @@ To make image pasting available in **all** your projects without copying files:
 ### Option A — Task Picker (works immediately)
 
 1. Open **any** project in Zed.
-2. Press `Ctrl+Shift+P` → type **`task: spawn`** → select **󰋩 Paste Image**.
+2. Press `Ctrl+Shift+P` → type **`task: spawn`** → select **󰋩 Paste File/Image**.
 
 ![Task Spawn Screenshot](screenshots/select_paste_image.png)
 
@@ -104,7 +105,7 @@ Add this to your Zed keymap (`Ctrl+Shift+P` → `zed: open keymap`):
   {
     "context": "Workspace",
     "bindings": {
-      "ctrl+shift+v": ["task::Spawn", { "task_name": "󰋩 Paste Image" }]
+      "ctrl+shift+v": ["task::Spawn", { "task_name": "󰋩 Paste File/Image" }]
     }
   }
 ]
