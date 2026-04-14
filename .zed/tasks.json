@@ -1,0 +1,13 @@
+[
+  {
+    "label": "📸 Paste Image",
+    "command": "python3",
+    "args": [
+      "${ZED_WORKTREE_ROOT}/scripts/paste_to_editor.py",
+      "${ZED_WORKTREE_ROOT}"
+    ],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  }
+]

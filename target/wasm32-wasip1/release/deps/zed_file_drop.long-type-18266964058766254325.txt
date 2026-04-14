@@ -1,0 +1,2 @@
+zed_extension_api::wit::zed::extension::common::Range: From<std::ops::Range<i32>>
+Into<zed_extension_api::wit::zed::extension::common::Range>
