@@ -20,10 +20,20 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 RESET='\033[0m'
 
-info()    { echo -e "${CYAN}${BOLD}[INFO]${RESET}  $*"; }
-success() { echo -e "${GREEN}${BOLD}[OK]${RESET}    $*"; }
-warn()    { echo -e "${YELLOW}${BOLD}[WARN]${RESET}  $*"; }
-error()   { echo -e "${RED}${BOLD}[ERROR]${RESET} $*" >&2; }
+# Icons (Nerd Font)
+ICON_INFO="󰋽"
+ICON_SUCCESS="󰄬"
+ICON_WARN="󰀪"
+ICON_ERROR="󰅙"
+ICON_SYNC="󰓦"
+ICON_RESTART="󰜉"
+
+info()    { echo -e "${CYAN}${BOLD}${ICON_INFO}${RESET}  $*"; }
+success() { echo -e "${GREEN}${BOLD}${ICON_SUCCESS}${RESET}  $*"; }
+warn()    { echo -e "${YELLOW}${BOLD}${ICON_WARN}${RESET}  $*"; }
+error()   { echo -e "${RED}${BOLD}${ICON_ERROR}${RESET}  $*" >&2; }
+sync()    { echo -e "${CYAN}${BOLD}${ICON_SYNC}${RESET}  $*"; }
+restart() { echo -e "${YELLOW}${BOLD}${ICON_RESTART}${RESET}  $*"; }
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -34,9 +44,8 @@ WASM_SRC="${SCRIPT_DIR}/target/${WASM_TARGET}/release/zed_file_drop.wasm"
 WASM_DST="${ZED_EXTENSIONS_DIR}/extension.wasm"
 
 echo ""
-echo -e "${BOLD}╔══════════════════════════════════════╗${RESET}"
-echo -e "${BOLD}║   zed-file-drop  ·  Update Script   ║${RESET}"
-echo -e "${BOLD}╚══════════════════════════════════════╝${RESET}"
+echo -e "${CYAN}${BOLD}󰋩  zed-file-drop ${RESET}${CYAN}· Update Script${RESET}"
+echo -e "${CYAN}──────────────────────────────────────────────────${RESET}"
 echo ""
 
 # ── Step 1: Verify we're in the right directory ───────────────────────────────
@@ -65,28 +74,34 @@ fi
 
 success "Build complete → $(du -sh "${WASM_SRC}" | cut -f1) WASM"
 
-# ── Step 4: Copy extension.wasm into Zed's installed dir ─────────────────────
-if [[ ! -d "${ZED_EXTENSIONS_DIR}" ]]; then
-  warn "Installed extension dir not found: ${ZED_EXTENSIONS_DIR}"
-  warn "Make sure you've installed 'zed-file-drop' via Zed's extension manager first."
-  exit 1
+# ── Step 4: Sync files to Zed ──────────────────────────────────────────────────
+if [[ "$(realpath "${SCRIPT_DIR}")" == "$(realpath "${ZED_EXTENSIONS_DIR}")" ]]; then
+  info "Source and destination are the same folder (dev extension). Skipping sync..."
+else
+  if [[ ! -d "${ZED_EXTENSIONS_DIR}" ]]; then
+    warn "Installed extension dir not found: ${ZED_EXTENSIONS_DIR}"
+    warn "Make sure you've installed 'zed-file-drop' via Zed's extension manager first."
+    exit 1
+  fi
+
+  sync "Syncing extension files to Zed…"
+
+  # Copy the freshly built WASM
+  cp "${WASM_SRC}" "${WASM_DST}"
+  success "Copied extension.wasm"
+
+  # Copy extension.toml specifically (no --delete on root!)
+  cp "${SCRIPT_DIR}/extension.toml" "${ZED_EXTENSIONS_DIR}/extension.toml"
+
+  # Sync subdirectories (safe to use --delete here as it only affects the subfolder)
+  rsync -a --delete "${SCRIPT_DIR}/scripts/" "${ZED_EXTENSIONS_DIR}/scripts/"
+  
+  if [[ -d "${SCRIPT_DIR}/docs" ]]; then
+    rsync -a --delete "${SCRIPT_DIR}/docs/" "${ZED_EXTENSIONS_DIR}/docs/"
+  fi
+
+  success "Synced extension.toml + subdirectories"
 fi
-
-info "Syncing extension files to Zed…"
-
-# Copy the freshly built WASM
-cp "${WASM_SRC}" "${WASM_DST}"
-success "Copied extension.wasm"
-
-# Sync support files (extension.toml, scripts/, src/, docs/)
-rsync -a --delete \
-  "${SCRIPT_DIR}/extension.toml" \
-  "${SCRIPT_DIR}/scripts/" \
-  "${ZED_EXTENSIONS_DIR}/"
-
-# Sync scripts directory explicitly so it stays up to date
-rsync -a --delete "${SCRIPT_DIR}/scripts/" "${ZED_EXTENSIONS_DIR}/scripts/"
-success "Synced extension.toml + scripts/"
 
 # Also keep the local copy up to date (the wasm in project root)
 cp "${WASM_SRC}" "${SCRIPT_DIR}/extension.wasm"
@@ -98,7 +113,7 @@ if pgrep -x "zed" > /dev/null; then
   read -rp "$(echo -e "${YELLOW}Zed is running. Restart it to apply changes? [Y/n]: ${RESET}")" answer
   answer="${answer:-Y}"
   if [[ "${answer}" =~ ^[Yy]$ ]]; then
-    info "Restarting Zed…"
+    restart "Restarting Zed…"
     pkill -x zed || true
     sleep 1
     nohup zed . > /dev/null 2>&1 &
@@ -111,6 +126,6 @@ else
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
-echo ""
-echo -e "${GREEN}${BOLD}✔  zed-file-drop updated successfully!${RESET}"
+echo -e "${CYAN}──────────────────────────────────────────────────${RESET}"
+echo -e "${GREEN}${BOLD}${ICON_SUCCESS}  zed-file-drop updated successfully!${RESET}"
 echo ""

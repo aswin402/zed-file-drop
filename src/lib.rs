@@ -83,17 +83,17 @@ fn paste_image_command(worktree: Option<&Worktree>) -> zed::Result<SlashCommandO
                 text: md_link,
                 sections: vec![SlashCommandOutputSection {
                     range: (0_usize..len).into(),
-                    label: "Pasted image".to_string(),
+                    label: "󰋩 Pasted image".to_string(),
                 }],
             })
         }
 
         // Exit 1 – no image on clipboard
         Some(1) => Ok(SlashCommandOutput {
-            text: "No image in clipboard.".to_string(),
+            text: "󰅙 No image in clipboard.".to_string(),
             sections: vec![SlashCommandOutputSection {
-                range: (0_usize..22).into(),
-                label: "paste-image".to_string(),
+                range: (0_usize..25).into(),
+                label: "󰋩 paste-image".to_string(),
             }],
         }),
 

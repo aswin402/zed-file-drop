@@ -35,6 +35,34 @@ from urllib.parse import urlparse, unquote
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".tiff", ".ico"}
 
+# ── Styling ───────────────────────────────────────────────────────────────────
+
+# ANSI Color Codes
+CLR_CYAN = "\033[0;36m"
+CLR_GREEN = "\033[0;32m"
+CLR_YELLOW = "\033[1;33m"
+CLR_RED = "\033[0;31m"
+CLR_BOLD = "\033[1m"
+CLR_RESET = "\033[0m"
+
+# Icons (Nerd Font)
+ICON_CAMERA = "󰋩"
+ICON_CHECK = "󰄬"
+ICON_CLIPBOARD = "󰅍"
+ICON_INFO = "󰋽"
+ICON_ERROR = "󰅙"
+
+def style(text: str, color: str) -> str:
+    return f"{color}{text}{CLR_RESET}"
+
+def print_header(title: str):
+    print(style(f"\n{ICON_CAMERA} {title}", CLR_CYAN + CLR_BOLD))
+    print(style("─" * 45, CLR_CYAN))
+
+def print_footer():
+    print(style("─" * 45, CLR_CYAN))
+
+
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
 def main():
@@ -66,7 +94,7 @@ def main():
         result = try_pillow(assets_dir, timestamp)
 
     if not result:
-        print("No image or image file found on clipboard.", file=sys.stderr)
+        print(f"{style(ICON_ERROR, CLR_RED)}  {style('Error:', CLR_BOLD)} No image or image file found on clipboard.", file=sys.stderr)
         sys.exit(1)
 
     _dest_path, filename = result
@@ -76,9 +104,11 @@ def main():
     write_to_clipboard(md_link, wayland)
 
     # Also print it so Zed's task output panel shows it
-    print(f"\n✅ Image saved:  assets/{filename}")
-    print(f"📋 In clipboard: {md_link}")
-    print("\nPress Ctrl+V in your editor to insert the link.")
+    print_header("zed-file-drop")
+    print(f"{style(ICON_CHECK, CLR_GREEN)}  {style('Saved:', CLR_BOLD):<10} assets/{filename}")
+    print(f"{style(ICON_CLIPBOARD, CLR_CYAN)}  {style('Linked:', CLR_BOLD):<10} {md_link}")
+    print_footer()
+    print(f"{style(ICON_INFO, CLR_YELLOW)}  Press {style('Ctrl+V', CLR_BOLD)} to paste link into your editor.\n")
 
     sys.exit(0)
 

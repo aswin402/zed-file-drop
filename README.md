@@ -1,4 +1,4 @@
-# Zed File Drop 📸
+# Zed File Drop 󰋩
 
 ![Zed File Drop Logo](assets/logo.png)
 
@@ -13,7 +13,7 @@ A **cross-platform** Zed extension and task that lets you paste images directly 
 ## How it Works
 
 1. **Copy** any image — a screenshot, or an image copied from Nautilus/Thunar/Files.
-2. **Press** `Ctrl+Shift+P` → run `📸 Paste Image`, or use a custom hotkey.
+2. **Press** `Ctrl+Shift+P` → run `󰋩 Paste Image`, or use a custom hotkey.
 3. The script saves the image to `assets/image-xxx.png` in your workspace.
 4. `![](assets/image-xxx.png)` is placed in your clipboard automatically.
 5. **Press** `Ctrl+V` in your editor to insert the link.
@@ -63,7 +63,7 @@ To make image pasting available in **all** your projects without copying files:
 ```json
 [
   {
-    "label": "📸 Paste Image",
+    "label": "󰋩 Paste Image",
     "command": "python3",
     "args": [
       "/home/aswin/programming/vscode/myProjects/zed-file-drop/scripts/paste_to_editor.py",
@@ -84,7 +84,7 @@ To make image pasting available in **all** your projects without copying files:
 ### Option A — Task Picker (works immediately)
 
 1. Open **any** project in Zed.
-2. Press `Ctrl+Shift+P` → type **`task: spawn`** → select **📸 Paste Image**.
+2. Press `Ctrl+Shift+P` → type **`task: spawn`** → select **󰋩 Paste Image**.
 
 ![Task Spawn Screenshot](screenshots/select_paste_image.png)
 
@@ -104,7 +104,7 @@ Add this to your Zed keymap (`Ctrl+Shift+P` → `zed: open keymap`):
   {
     "context": "Workspace",
     "bindings": {
-      "ctrl+shift+v": ["task::Spawn", { "task_name": "📸 Paste Image" }]
+      "ctrl+shift+v": ["task::Spawn", { "task_name": "󰋩 Paste Image" }]
     }
   }
 ]
