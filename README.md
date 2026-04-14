@@ -1,6 +1,6 @@
 # Zed File Drop 󰋩
 
-![Zed File Drop Logo](assets/logo.png)
+<img src="assets/logo.png" width="200" alt="Zed File Drop Logo">
 
 A **cross-platform** Zed extension and task that lets you paste files, folders, and images directly from your clipboard or file manager into the editor, generating the relevant Markdown links — just like VS Code.
 
