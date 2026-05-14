@@ -12,9 +12,9 @@ Standard Rust crates like `arboard` cannot compile to this target as they depend
 
 To overcome the sandbox limitations, this extension implements a **Sidecar Pattern**.
 
-1.  **Host Execution**: The logic that requires system permissions (reading the clipboard) is moved to a script that runs natively on the host machine.
+1.  **Host Execution**: The logic that requires system permissions (reading the clipboard) is moved to a Rust sidecar binary (`zed-file-drop-sidecar`) that runs natively on the host machine.
 2.  **Child Processes**: The Zed Extension API provides a `process::Command` utility that allows the WASM extension to execute binaries available on the host's `$PATH`.
-3.  **Cross-Platform Python Script**: We use a Python script (`scripts/paste_image.py`) because Python is commonly available and can easily handle cross-process logic.
+3.  **Alternative Python Script**: A Python script (`scripts/paste_to_editor.py`) is also available for direct execution via Zed Tasks.
 
 ### Workflow Diagram
 

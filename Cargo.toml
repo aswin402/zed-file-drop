@@ -1,6 +1,6 @@
 [package]
 name = "zed-file-drop"
-version = "0.2.0"
+version = "0.4.1"
 edition = "2021"
 
 [lib]
@@ -8,3 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 zed_extension_api = "0.7.0"
+
+[[bin]]
+name = "zed-file-drop-sidecar"
+path = "src/sidecar_main.rs"

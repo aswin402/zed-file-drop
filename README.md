@@ -89,7 +89,7 @@ To make image pasting available in **all** your projects without copying files:
 
 ![Task Spawn Screenshot](screenshots/select_paste_image.png)
 
-3. Tiny terminal pops up: Image is saved to `assets/` and the link is copied.
+3. Tiny terminal pops up with a clean box UI showing the saved file and markdown link. Your clipboard is updated automatically.
 4. Press `Ctrl+V` to paste the link into your file.
 
 ![Terminal Feedback](screenshots/searchtask.png)

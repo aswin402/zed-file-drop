@@ -17,8 +17,8 @@ The `zed-file-drop` extension enhances the Zed editor experience by providing a 
 
 ### 1. Robust Clipboard Detection
 The extension uses a multi-layered approach to detect images:
-- Primary tools for Linux (`wl-paste`, `xclip`) are preferred for performance.
-- A Python-based fallback (`Pillow`) ensures standard clipboard access on macOS and Windows.
+- Rust sidecar binary (`zed-file-drop-sidecar`) for native Linux clipboard access via `wl-paste` and `xclip`.
+- Python-based fallback (`scripts/paste_to_editor.py`) via Zed Tasks for additional flexibility.
 
 ### 2. Sandbox Escape via Sidecar
 Successfully navigated the WASM sandbox limitations by offloading system-level tasks to a controlled host script.

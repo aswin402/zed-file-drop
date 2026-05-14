@@ -88,14 +88,20 @@ This is the fastest, most reliable method:
 
    - OR press your custom hotkey (see below)
 
-3. The terminal briefly shows:
-   ```text
-   󰋩 zed-file-drop
-   ─────────────────────────────────────────────
-   󰄬  Saved:     assets/image-20240414_103000.png
-   󰅍  Linked:    ![](assets/image-20240414_103000.png)
-   ─────────────────────────────────────────────
-   󰋽  Press Ctrl+V to paste into your editor.
+3. The terminal shows a clean TUI:
+   ```
+     ● assets/image-20240514_103000.png
+     ○ ![](assets/image-20240514_103000.png)
+
+     ○ Paste with Ctrl+V
+   ```
+
+   Or if nothing is copied:
+   ```
+     ┌──────────────────────────────────────────────┐
+     │           No image or file found              │
+     │       Copy something first, then retry       │
+     └──────────────────────────────────────────────┘
    ```
 
 ![Terminal Output Feedback](screenshots/searchtask.png)

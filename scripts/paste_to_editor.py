@@ -37,30 +37,33 @@ IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".
 
 # ── Styling ───────────────────────────────────────────────────────────────────
 
-# ANSI Color Codes
-CLR_CYAN = "\033[0;36m"
-CLR_GREEN = "\033[0;32m"
-CLR_YELLOW = "\033[1;33m"
-CLR_RED = "\033[0;31m"
-CLR_BOLD = "\033[1m"
 CLR_RESET = "\033[0m"
+CLR_BOLD = "\033[1m"
 
-# Icons (Nerd Font)
-ICON_CAMERA = "󰋩"
-ICON_CHECK = "󰄬"
-ICON_CLIPBOARD = "󰅍"
-ICON_INFO = "󰋽"
-ICON_ERROR = "󰅙"
+def dim(text: str) -> str:
+    return f"\033[2m{text}{CLR_RESET}"
 
-def style(text: str, color: str) -> str:
-    return f"{color}{text}{CLR_RESET}"
+def bright(text: str) -> str:
+    return f"\033[0m{text}{CLR_RESET}"
 
-def print_header(title: str):
-    print(style(f"\n{ICON_CAMERA} {title}", CLR_CYAN + CLR_BOLD))
-    print(style("─" * 45, CLR_CYAN))
+def box(lines: list[str], width: int = 48):
+    """Draw a centered text box."""
+    print()
+    print(f"  ┌{'─' * (width - 2)}┐")
+    for line in lines:
+        pad = width - 4 - len(_strip_ansi(line))
+        print(f"  │{_strip_ansi(line):^{width - 4}}{' ' * max(0, pad)}│")
+    print(f"  └{'─' * (width - 2)}┘")
 
-def print_footer():
-    print(style("─" * 45, CLR_CYAN))
+def _strip_ansi(text: str) -> str:
+    import re
+    return re.sub(r'\x1b\[[0-9;]*m', '', text)
+
+def ok(text: str):
+    print(f"  {dim('●')} {text}")
+
+def info(text: str):
+    print(f"  {dim('○')} {text}")
 
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
@@ -94,29 +97,34 @@ def main():
         results = try_pillow(assets_dir, timestamp)
 
     if not results:
-        print(f"{style(ICON_ERROR, CLR_RED)}  {style('Error:', CLR_BOLD)} No file or image found on clipboard.", file=sys.stderr)
+        box([
+            dim("━━━"),
+            "No image or file found",
+            "",
+            dim("Copy something first, then retry"),
+            dim("━━━"),
+        ])
         sys.exit(1)
 
     all_md_links = []
-    print_header("zed-file-drop")
 
     for dest_path, filename, is_image in results:
         if is_image:
             md_link = f"![](assets/{filename})"
         else:
             md_link = f"[{filename}](assets/{filename})"
-            
-        all_md_links.append(md_link)
-        print(f"{style(ICON_CHECK, CLR_GREEN)}  {style('Saved:', CLR_BOLD):<10} assets/{filename}")
-        print(f"{style(ICON_CLIPBOARD, CLR_CYAN)}  {style('Linked:', CLR_BOLD):<10} {md_link}")
 
-    print_footer()
+        all_md_links.append(md_link)
+        ok(f"assets/{filename}")
+        info(md_link)
 
     # ── Write the markdown link back to clipboard so user can Ctrl+V ─────────
     final_text = "\n".join(all_md_links)
     write_to_clipboard(final_text, wayland)
 
-    print(f"{style(ICON_INFO, CLR_YELLOW)}  Press {style('Ctrl+V', CLR_BOLD)} to paste into your editor.\n")
+    print()
+    info(f"Paste with {dim('Ctrl+V')}")
+    print()
 
     sys.exit(0)
 
@@ -220,8 +228,7 @@ def try_pillow(assets_dir: Path, timestamp: str):
     except ImportError:
         return None
     except Exception as e:
-        print(f"Pillow error: {e}", file=sys.stderr)
-        return None
+        pass  # Best-effort
 
 
 # ── Clipboard Write ───────────────────────────────────────────────────────────

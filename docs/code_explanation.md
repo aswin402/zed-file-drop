@@ -37,7 +37,7 @@ This is the entry point when a user triggers `/paste-image`. It dispatches to `p
     - **Some(2)**: Missing platform dependencies.
 4.  **Formatting**: The final result is returned as a `SlashCommandOutput`, which Zed's Assistant panel renders as clickable or editable text.
 
-## 3. Sidecar Script (`scripts/paste_image.py`)
+## 3. Sidecar Script (`scripts/paste_to_editor.py`)
 
 The Python script uses standard libraries and sub-processes to interface with the host OS.
 

@@ -26,64 +26,82 @@ impl zed::Extension for FileDropExtension {
 
 /// Core logic for /paste-image.
 ///
-/// Architecture note
-/// ─────────────────
-/// Zed extensions run inside a wasm32-wasip1 sandbox.  The sandbox has
-/// **no** direct access to system APIs like the clipboard.  We work around
-/// this by calling a small Python sidecar script (`scripts/paste_image.py`)
-/// that runs on the host and reads the clipboard using the appropriate
-/// system tool for the platform:
-///
-///   Linux (Wayland) → wl-paste
-///   Linux (X11)     → xclip
-///   macOS / Windows → Pillow (PIL) ImageGrab
-///
-/// The script writes the PNG bytes to a temporary path we supply, then we
-/// move the file to `<workspace-root>/assets/image-<timestamp>.png`.
-///
-/// Because `std::fs` works through WASI, the extension *can* perform basic
-/// filesystem operations (mkdir, rename) once the worktree is trusted.
+/// Uses a Rust sidecar binary to access the clipboard (WASM sandbox has no
+/// direct clipboard access). The sidecar is spawned as a subprocess and:
+///   - Creates <root>/assets/ if needed
+///   - Saves the image/file with a timestamped name
+///   - Outputs the markdown link to stdout
 fn paste_image_command(worktree: Option<&Worktree>) -> zed::Result<SlashCommandOutput> {
     // ── 1. Resolve workspace root ────────────────────────────────────────────
     let root = worktree
         .map(|wt| wt.root_path())
         .ok_or_else(|| "No workspace is open. Open a folder first.".to_string())?;
 
-    // ── 2. Build output path ─────────────────────────────────────────────────
-    let timestamp = timestamp_ms();
-    let filename = format!("image-{}.png", timestamp);
-    let assets_dir = format!("{}/assets", root);
-    let output_path = format!("{}/{}", assets_dir, filename);
-
-    // ── 3. Locate the sidecar script ─────────────────────────────────────────
+    // ── 2. Find the sidecar binary ──────────────────────────────────────────
     //
-    // `worktree.root_path()` points to the open project, but the sidecar
-    // lives inside the *extension* directory itself.  Zed sets the working
-    // directory of extension processes to the extension directory, so a
-    // relative path works fine during dev-extension installs.
-    //
-    // For a published extension the sidecar must be included in the extension
-    // repository; Zed copies every file from the repo root into the installed
-    // extension dir.
-    let script_path = "scripts/paste_to_editor.py";
+    // The sidecar is built as part of the workspace and placed in
+    // sidecar/target/release/zed_file_drop_sidecar (or .exe on Windows)
+    let extension_root = std::env::current_dir()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|_| String::from("."));
 
-    // ── 4. Call the sidecar ──────────────────────────────────────────────────
-    let output = Command::new("python3")
-        .arg(script_path)
-        .arg(&output_path)
+    // Try various paths for the sidecar
+    let sidecar_name = if cfg!(target_os = "windows") {
+        "zed-file-drop-sidecar.exe"
+    } else {
+        "zed-file-drop-sidecar"
+    };
+
+    // The sidecar is placed alongside the extension (same directory)
+    let sidecar_paths = [
+        format!("{}/{}", extension_root, sidecar_name),
+        format!("{}/target/release/{}", extension_root, sidecar_name),
+        format!("{}/../target/release/{}", extension_root, sidecar_name),
+    ];
+
+    let sidecar_path = sidecar_paths
+        .iter()
+        .find(|p| std::path::Path::new(p).exists())
+        .ok_or_else(|| "Sidecar binary not found. Please rebuild the project.".to_string())?
+        .clone();
+
+    // ── 3. Run the sidecar ───────────────────────────────────────────────────
+    let output = Command::new(&sidecar_path)
+        .arg(&root)
         .output()
-        .map_err(|e| format!("Failed to run paste_image.py: {}", e))?;
+        .map_err(|e| format!("Failed to run sidecar: {}", e))?;
 
     match output.status {
-        // Success – image was written to output_path
+        // Success
         Some(0) => {
-            let md_link = format!("![](assets/{})", filename);
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            let _stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+            // First line is typically the markdown link
+            let md_link = stdout
+                .lines()
+                .next()
+                .unwrap_or("")
+                .trim()
+                .to_string();
+
+            // Check if we got a valid link
+            if md_link.is_empty() {
+                return Err("No output from sidecar".to_string());
+            }
+
+            let label = if md_link.contains("![") {
+                "󰋩 Pasted image".to_string()
+            } else {
+                "󰋩 Pasted file".to_string()
+            };
+
             let len = md_link.len();
             Ok(SlashCommandOutput {
                 text: md_link,
                 sections: vec![SlashCommandOutputSection {
                     range: (0_usize..len).into(),
-                    label: "󰋩 Pasted file/image".to_string(),
+                    label,
                 }],
             })
         }
@@ -98,33 +116,24 @@ fn paste_image_command(worktree: Option<&Worktree>) -> zed::Result<SlashCommandO
         }),
 
         // Exit 2 – missing dependency
-        Some(2) => Err(
-            "Clipboard tool not found.\n\
-             Linux Wayland: install wl-clipboard (wl-paste)\n\
-             Linux X11:     install xclip\n\
-             macOS/Windows: pip install Pillow"
-                .to_string(),
-        ),
+        Some(2) => Err("Clipboard tool not found.\n\
+             Linux Wayland: sudo apt install wl-clipboard\n\
+             Linux X11:     sudo apt install xclip"
+            .to_string()),
 
-        // Any other exit code (or None if the process was killed)
+        // Exit 3 – bad arguments
+        Some(3) => Err("Bad arguments passed to sidecar.".to_string()),
+
+        // Any other exit code
         code => {
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
             Err(format!(
-                "paste_image.py exited with code {:?}:\n{}",
-                code, stderr
+                "Sidecar exited with code {:?}\nstdout: {}\nstderr: {}",
+                code, stdout, stderr
             ))
         }
     }
-}
-
-/// Returns milliseconds since Unix epoch as a string.
-/// WASI's `std::time::SystemTime` is available and sufficient for this.
-fn timestamp_ms() -> u64 {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis() as u64
 }
 
 zed::register_extension!(FileDropExtension);

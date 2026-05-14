@@ -32,11 +32,34 @@ This document tracks the significant changes and bug fixes made during the devel
 
 ## Modification 7: Developer Automation Script
 - **Problem**: Manually rebuilding the WASM extension and syncing files to Zed's internal `~/.local/share/zed/extensions` directory was tedious and error-prone during development.
-- **Solution**: Created `update.sh`. This script automates the full cycle: 
+- **Solution**: Created `update.sh`. This script automates the full cycle:
     1.  Building the WASM blob for `wasm32-wasip1`.
     2.  Using `rsync` to sync only relevant scripts and metadata.
     3.  Restarting Zed (optional) to trigger an immediate extension reload.
 
 ## Modification 8: TUI Modernization (v0.2.0)
 - **Problem**: The original terminal output relied heavily on standard emojis which sometimes rendered inconsistently across different terminal emulators and lacked a professional tool feel.
-- **Solution**: Replaced standard emojis with consistent Nerd Font icons (e.g., `󰋩`, ``, ``, ``) and clean ASCII characters for bounding boxes and visual separation. This modernized the look and improved visual hierarchy in the command output.
+- **Solution**: Replaced emojis with clean box-drawing characters and a modern minimal design:
+
+  **Success output:**
+  ```
+    ● assets/image-20240514_143052.png
+    ○ ![](assets/image-20240514_143052.png)
+
+    ○ Paste with Ctrl+V
+  ```
+
+  **Error output:**
+  ```
+    ┌──────────────────────────────────────────────┐
+    │                    ━━━                      │
+    │           No image or file found             │
+    │                                              │
+    │      Copy something first, then retry        │
+    │                    ━━━                      │
+    └──────────────────────────────────────────────┘
+  ```
+
+## Modification 9: Rust Sidecar Binary
+- **Problem**: The Python script required `python3` to be installed and available on PATH. Some environments may not have Python configured for subprocess execution from the WASM extension.
+- **Solution**: Created a Rust sidecar binary (`zed-file-drop-sidecar`) that handles the same clipboard operations natively. The WASM extension now spawns this binary instead of invoking `python3` directly. The Python script remains available as an alternative for direct execution via Zed Tasks.

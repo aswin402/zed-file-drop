@@ -2,12 +2,12 @@
 # =============================================================================
 #  update.sh — zed-file-drop extension updater
 #
-#  Run this any time you change src/lib.rs, scripts/, or extension.toml.
+#  Run this any time you change src/lib.rs or extension.toml.
 #  It will:
-#    1. Build the WASM extension (cargo build --release)
-#    2. Copy the new extension.wasm + all support files into Zed's
-#       installed-extensions directory
-#    3. Optionally restart Zed so the changes are picked up immediately
+#    1. Build the WASM extension (cargo build --release --target wasm32-wasip1)
+#    2. Build the sidecar binary for the host machine
+#    3. Copy the extension.wasm + sidecar binary into Zed's installed directory
+#    4. Optionally restart Zed so the changes are picked up immediately
 # =============================================================================
 
 set -euo pipefail
@@ -42,6 +42,9 @@ ZED_EXTENSIONS_DIR="${HOME}/.local/share/zed/extensions/installed/${EXTENSION_ID
 WASM_TARGET="wasm32-wasip1"
 WASM_SRC="${SCRIPT_DIR}/target/${WASM_TARGET}/release/zed_file_drop.wasm"
 WASM_DST="${ZED_EXTENSIONS_DIR}/extension.wasm"
+SIDECAR_NAME="zed-file-drop-sidecar"
+SIDECAR_SRC="${SCRIPT_DIR}/target/release/${SIDECAR_NAME}"
+SIDECAR_DST="${ZED_EXTENSIONS_DIR}/${SIDECAR_NAME}"
 
 echo ""
 echo -e "${CYAN}${BOLD}󰋩  zed-file-drop ${RESET}${CYAN}· Update Script${RESET}"
@@ -62,7 +65,7 @@ if ! rustup target list --installed 2>/dev/null | grep -q "${WASM_TARGET}"; then
   rustup target add "${WASM_TARGET}"
 fi
 
-# ── Step 3: Build ─────────────────────────────────────────────────────────────
+# ── Step 3: Build WASM extension ──────────────────────────────────────────────
 info "Building WASM extension…"
 cd "${SCRIPT_DIR}"
 cargo build --release --target "${WASM_TARGET}" 2>&1
@@ -74,7 +77,18 @@ fi
 
 success "Build complete → $(du -sh "${WASM_SRC}" | cut -f1) WASM"
 
-# ── Step 4: Sync files to Zed ──────────────────────────────────────────────────
+# ── Step 4: Build sidecar for host machine ────────────────────────────────────
+info "Building sidecar binary…"
+cargo build --release -p "${EXTENSION_ID}" --bin "${SIDECAR_NAME}" 2>&1
+
+if [[ ! -f "${SIDECAR_SRC}" ]]; then
+  error "Sidecar build succeeded but binary not found at: ${SIDECAR_SRC}"
+  exit 1
+fi
+
+success "Sidecar build complete → $(du -sh "${SIDECAR_SRC}" | cut -f1)"
+
+# ── Step 5: Sync files to Zed ──────────────────────────────────────────────────
 if [[ "$(realpath "${SCRIPT_DIR}")" == "$(realpath "${ZED_EXTENSIONS_DIR}")" ]]; then
   info "Source and destination are the same folder (dev extension). Skipping sync..."
 else
@@ -90,24 +104,22 @@ else
   cp "${WASM_SRC}" "${WASM_DST}"
   success "Copied extension.wasm"
 
-  # Copy extension.toml specifically (no --delete on root!)
+  # Copy the sidecar binary
+  cp "${SIDECAR_SRC}" "${SIDECAR_DST}"
+  success "Copied ${SIDECAR_NAME}"
+
+  # Copy extension.toml
   cp "${SCRIPT_DIR}/extension.toml" "${ZED_EXTENSIONS_DIR}/extension.toml"
 
-  # Sync subdirectories (safe to use --delete here as it only affects the subfolder)
-  rsync -a --delete "${SCRIPT_DIR}/scripts/" "${ZED_EXTENSIONS_DIR}/scripts/"
-  
-  if [[ -d "${SCRIPT_DIR}/docs" ]]; then
-    rsync -a --delete "${SCRIPT_DIR}/docs/" "${ZED_EXTENSIONS_DIR}/docs/"
-  fi
-
-  success "Synced extension.toml + subdirectories"
+  success "Synced extension.wasm + sidecar + extension.toml"
 fi
 
-# Also keep the local copy up to date (the wasm in project root)
+# Also keep the local copies up to date
 cp "${WASM_SRC}" "${SCRIPT_DIR}/extension.wasm"
-success "Updated project-root extension.wasm"
+cp "${SIDECAR_SRC}" "${SCRIPT_DIR}/${SIDECAR_NAME}"
+success "Updated project-root extension.wasm and sidecar"
 
-# ── Step 5: Optionally restart Zed ───────────────────────────────────────────
+# ── Step 6: Optionally restart Zed ───────────────────────────────────────────
 echo ""
 if pgrep -x "zed" > /dev/null; then
   read -rp "$(echo -e "${YELLOW}Zed is running. Restart it to apply changes? [Y/n]: ${RESET}")" answer
